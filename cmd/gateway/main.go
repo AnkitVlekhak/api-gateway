@@ -11,6 +11,7 @@ import (
 
 	"github.com/AnkitVlekhak/api-gateway/internal/config"
 	"github.com/AnkitVlekhak/api-gateway/internal/gateway"
+	"github.com/AnkitVlekhak/api-gateway/internal/gateway/builder"
 )
 
 func main() {
@@ -20,7 +21,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	gateway, err := gateway.NewGateway(config)
+	routes, err := builder.BuildRoutes(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	router := gateway.NewPrefixRouter(routes)
+
+	gateway, err := gateway.NewGateway(router)
 	if err != nil {
 		log.Fatal(err)
 	}
