@@ -29,13 +29,29 @@ func main() {
 
 	router := gateway.NewPrefixRouter(routes)
 
+	trustedProxyIdentityResolver, err := gateway.NewTrustedProxyIdentityResolver([]string{
+		"10.0.0.0/8",
+		"192.168.0.0/16",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	apiKeyIdentityResolver := gateway.NewAPIKeyIdentityResolver("X-API-Key")
+
+	composite := gateway.NewCompositeIdentityResolver(
+		apiKeyIdentityResolver,        // highest priority
+		trustedProxyIdentityResolver,  // trusted proxy IP
+		&gateway.IPIdentityResolver{}, // fallback
+	)
+
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
 	})
 
 	ratelimiter := gateway.NewRedisTokenBucketRateLimiter(redisClient)
 
-	gateway, err := gateway.NewGateway(router, ratelimiter)
+	gateway, err := gateway.NewGateway(router, composite, ratelimiter)
 	if err != nil {
 		log.Fatal(err)
 	}

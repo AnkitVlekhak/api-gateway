@@ -3,7 +3,6 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -53,23 +52,10 @@ redis.call("EXPIRE", KEYS[1], math.ceil(ARGV[1] / ARGV[2]))
 return 1
 `
 
-func (r *RedisTokenBucketRateLimiter) Allow(route *Route, req *http.Request) bool {
+func (r *RedisTokenBucketRateLimiter) Allow(route *Route, identity string) bool {
 	policy := route.RateLimitPolicy
 	if policy == nil {
 		return true
-	}
-
-	var identity string
-
-	switch policy.KeyBy {
-	case RateLimitKeyIP:
-		identity = req.RemoteAddr
-	case RateLimitByAPIKey:
-		identity = req.Header.Get("X-API-Key")
-	}
-
-	if identity == "" {
-		return false
 	}
 
 	key := fmt.Sprintf("rate_limit:%s:%s", route.Path, identity)
