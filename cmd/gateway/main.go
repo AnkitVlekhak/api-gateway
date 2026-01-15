@@ -12,6 +12,7 @@ import (
 	"github.com/AnkitVlekhak/api-gateway/internal/config"
 	"github.com/AnkitVlekhak/api-gateway/internal/gateway"
 	"github.com/AnkitVlekhak/api-gateway/internal/gateway/builder"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -28,7 +29,13 @@ func main() {
 
 	router := gateway.NewPrefixRouter(routes)
 
-	gateway, err := gateway.NewGateway(router)
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
+	ratelimiter := gateway.NewRedisTokenBucketRateLimiter(redisClient)
+
+	gateway, err := gateway.NewGateway(router, ratelimiter)
 	if err != nil {
 		log.Fatal(err)
 	}

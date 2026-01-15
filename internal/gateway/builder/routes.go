@@ -16,6 +16,11 @@ func BuildRoutes(config *config.Config) ([]*gateway.Route, error) {
 		routes = append(routes, &gateway.Route{
 			Path:    route.Path,
 			Handler: proxy,
+			RateLimitPolicy: &gateway.RateLimitPolicy{
+				Requests: route.RateLimitPolicy.Requests,
+				Window:   route.RateLimitPolicy.Window,
+				KeyBy:    gateway.RateLimitKey(route.RateLimitPolicy.KeyBy),
+			},
 		})
 	}
 	return routes, nil

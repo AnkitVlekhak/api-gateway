@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v2"
 )
@@ -11,8 +12,15 @@ type Config struct {
 }
 
 type Route struct {
-	Path    string `yaml:"path"`
-	Backend string `yaml:"backend"`
+	Path            string           `yaml:"path"`
+	Backend         string           `yaml:"backend"`
+	RateLimitPolicy *RateLimitPolicy `yaml:"rate_limit_policy"`
+}
+
+type RateLimitPolicy struct {
+	Requests int           `yaml:"requests"`
+	Window   time.Duration `yaml:"window"`
+	KeyBy    string        `yaml:"key_by"`
 }
 
 func LoadConfig() (*Config, error) {
